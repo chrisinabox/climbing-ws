@@ -113,7 +113,8 @@ public class V2 {
 	@DELETE
 	@Path("/media")
 	public Response deleteMedia(@Context HttpServletRequest request,
-			@Parameter(name = "Media id", required = true) @QueryParam("id") int id) throws ExecutionException, IOException {
+			@Parameter(name = "Media id", required = true) @QueryParam("id") int id)
+			throws ExecutionException, IOException {
 		try (DbConnection c = ConnectionPoolProvider.startTransaction()) {
 			final int authUserId = getUserId(request);
 			Preconditions.checkArgument(id > 0);
@@ -125,7 +126,8 @@ public class V2 {
 		}
 	}
 
-	@Operation(summary = "Get activity feed", responses = {@ApiResponse(responseCode = "200", content = {@Content(mediaType = "application/json", array = @ArraySchema(schema = @Schema(implementation = Activity.class)))})})
+	@Operation(summary = "Get activity feed", responses = { @ApiResponse(responseCode = "200", content = {
+			@Content(mediaType = "application/json", array = @ArraySchema(schema = @Schema(implementation = Activity.class))) }) })
 	@SecurityRequirement(name = "Bearer Authentication")
 	@GET
 	@Path("/activity")
@@ -137,11 +139,13 @@ public class V2 {
 			@Parameter(name = "Include first ascents", required = false) @QueryParam("fa") boolean fa,
 			@Parameter(name = "Include comments", required = false) @QueryParam("comments") boolean comments,
 			@Parameter(name = "Include ticks (public ascents)", required = false) @QueryParam("ticks") boolean ticks,
-			@Parameter(name = "Include new media", required = false) @QueryParam("media") boolean media) throws ExecutionException, IOException {
+			@Parameter(name = "Include new media", required = false) @QueryParam("media") boolean media)
+			throws ExecutionException, IOException {
 		try (DbConnection c = ConnectionPoolProvider.startTransaction()) {
 			final Setup setup = MetaHelper.getMeta().getSetup(request);
 			final int authUserId = getUserId(request);
-			List<Activity> res = c.getBuldreinfoRepo().getActivity(authUserId, setup, idArea, idSector, lowerGrade, fa, comments, ticks, media);
+			List<Activity> res = c.getBuldreinfoRepo().getActivity(authUserId, setup, idArea, idSector, lowerGrade, fa,
+					comments, ticks, media);
 			c.setSuccess();
 			return Response.ok().entity(res).build();
 		} catch (Exception e) {
@@ -149,7 +153,8 @@ public class V2 {
 		}
 	}
 
-	@Operation(summary = "Get administrators", responses = {@ApiResponse(responseCode = "200", content = {@Content(mediaType = "application/json", array = @ArraySchema(schema = @Schema(implementation = Administrator.class)))})})
+	@Operation(summary = "Get administrators", responses = { @ApiResponse(responseCode = "200", content = {
+			@Content(mediaType = "application/json", array = @ArraySchema(schema = @Schema(implementation = Administrator.class))) }) })
 	@GET
 	@Path("/administrators")
 	@Produces(MediaType.APPLICATION_JSON + "; charset=utf-8")
@@ -164,13 +169,15 @@ public class V2 {
 		}
 	}
 
-	@Operation(summary = "Get areas", responses = {@ApiResponse(responseCode = "200", content = {@Content(mediaType = "application/json", array = @ArraySchema(schema = @Schema(implementation = Area.class)))})})
+	@Operation(summary = "Get areas", responses = { @ApiResponse(responseCode = "200", content = {
+			@Content(mediaType = "application/json", array = @ArraySchema(schema = @Schema(implementation = Area.class))) }) })
 	@SecurityRequirement(name = "Bearer Authentication")
 	@GET
 	@Path("/areas")
 	@Produces(MediaType.APPLICATION_JSON + "; charset=utf-8")
 	public Response getAreas(@Context HttpServletRequest request,
-			@Parameter(name = "Area id", required = false) @QueryParam("id") int id) throws ExecutionException, IOException {
+			@Parameter(name = "Area id", required = false) @QueryParam("id") int id)
+			throws ExecutionException, IOException {
 		try (DbConnection c = ConnectionPoolProvider.startTransaction()) {
 			final Setup setup = MetaHelper.getMeta().getSetup(request);
 			final int authUserId = getUserId(request);
@@ -178,8 +185,7 @@ public class V2 {
 			if (id > 0) {
 				Collection<Area> areas = Collections.singleton(c.getBuldreinfoRepo().getArea(setup, authUserId, id));
 				response = Response.ok().entity(areas).build();
-			}
-			else {
+			} else {
 				Collection<Area> areas = c.getBuldreinfoRepo().getAreaList(authUserId, setup.getIdRegion());
 				response = Response.ok().entity(areas).build();
 			}
@@ -190,19 +196,21 @@ public class V2 {
 		}
 	}
 
-	@Operation(summary = "Get area PDF by id", responses = {@ApiResponse(responseCode = "200", content = {@Content(mediaType = "application/pdf", array = @ArraySchema(schema = @Schema(implementation = Byte.class)))})})
+	@Operation(summary = "Get area PDF by id", responses = { @ApiResponse(responseCode = "200", content = {
+			@Content(mediaType = "application/pdf", array = @ArraySchema(schema = @Schema(implementation = Byte.class))) }) })
 	@SecurityRequirement(name = "Bearer Authentication")
 	@GET
 	@Path("/areas/pdf")
 	@Produces("application/pdf")
 	public Response getAreasPdf(@Context final HttpServletRequest request,
-			@Parameter(name = "Area id", required = true) @QueryParam("id") int id) throws Throwable{
+			@Parameter(name = "Area id", required = true) @QueryParam("id") int id) throws Throwable {
 		try (DbConnection c = ConnectionPoolProvider.startTransaction()) {
 			final Setup setup = MetaHelper.getMeta().getSetup(request);
 			final int authUserId = getUserId(request);
 			final Meta meta = new Meta(c, setup, authUserId);
 			final Area area = c.getBuldreinfoRepo().getArea(setup, authUserId, id);
-			final Collection<GradeDistribution> gradeDistribution = c.getBuldreinfoRepo().getGradeDistribution(authUserId, setup, area.getId(), 0);
+			final Collection<GradeDistribution> gradeDistribution = c.getBuldreinfoRepo()
+					.getGradeDistribution(authUserId, setup, area.getId(), 0);
 			final List<Sector> sectors = new ArrayList<>();
 			final boolean orderByGrade = false;
 			for (Area.AreaSector sector : area.getSectors()) {
@@ -220,17 +228,18 @@ public class V2 {
 					} catch (Throwable e) {
 						e.printStackTrace();
 						throw GlobalFunctions.getWebApplicationExceptionInternalError(new Exception(e.getMessage()));
-					}	            	 
+					}
 				}
 			};
 			String fn = GlobalFunctions.getFilename(area.getName(), "pdf");
-			return Response.ok(stream).header("Content-Disposition", "attachment; filename=\"" + fn + "\"" ).build();
+			return Response.ok(stream).header("Content-Disposition", "attachment; filename=\"" + fn + "\"").build();
 		} catch (Exception e) {
 			throw GlobalFunctions.getWebApplicationExceptionInternalError(e);
 		}
 	}
 
-	@Operation(summary = "Get webcams", responses = {@ApiResponse(responseCode = "200", content = {@Content(mediaType = "application/json", array = @ArraySchema(schema = @Schema(implementation = Webcam.class)))})})
+	@Operation(summary = "Get webcams", responses = { @ApiResponse(responseCode = "200", content = {
+			@Content(mediaType = "application/json", array = @ArraySchema(schema = @Schema(implementation = Webcam.class))) }) })
 	@GET
 	@Path("/webcams")
 	@Produces(MediaType.APPLICATION_JSON + "; charset=utf-8")
@@ -245,7 +254,9 @@ public class V2 {
 		}
 	}
 
-	@Operation(summary = "Get boulders/routes marked as dangerous", responses = {@ApiResponse(responseCode = "200", content = {@Content(mediaType = "application/json", array = @ArraySchema(schema = @Schema(implementation = Dangerous.class)))})})
+	@Operation(summary = "Get boulders/routes marked as dangerous", responses = {
+			@ApiResponse(responseCode = "200", content = {
+					@Content(mediaType = "application/json", array = @ArraySchema(schema = @Schema(implementation = Dangerous.class))) }) })
 	@SecurityRequirement(name = "Bearer Authentication")
 	@GET
 	@Path("/dangerous")
@@ -262,14 +273,17 @@ public class V2 {
 		}
 	}
 
-	@Operation(summary = "Get elevation by latitude and longitude", responses = {@ApiResponse(responseCode = "200", content = {@Content(mediaType = "text/html", schema = @Schema(implementation = Integer.class))})})
+	@Operation(summary = "Get elevation by latitude and longitude", responses = {
+			@ApiResponse(responseCode = "200", content = {
+					@Content(mediaType = "text/html", schema = @Schema(implementation = Integer.class)) }) })
 	@SecurityRequirement(name = "Bearer Authentication")
 	@GET
 	@Path("/elevation")
 	@Produces(MediaType.TEXT_PLAIN + "; charset=utf-8")
 	public Response getElevation(@Context HttpServletRequest request,
 			@Parameter(name = "latitude", required = true) @QueryParam("latitude") double latitude,
-			@Parameter(name = "longitude", required = true) @QueryParam("longitude") double longitude) throws ExecutionException, IOException {
+			@Parameter(name = "longitude", required = true) @QueryParam("longitude") double longitude)
+			throws ExecutionException, IOException {
 		try (DbConnection c = ConnectionPoolProvider.startTransaction()) {
 			final int authUserId = getUserId(request);
 			Preconditions.checkArgument(authUserId > 0, "Service requires logged in user");
@@ -281,7 +295,8 @@ public class V2 {
 		}
 	}
 
-	@Operation(summary = "Get frontpage", responses = {@ApiResponse(responseCode = "200", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = Frontpage.class))})})
+	@Operation(summary = "Get frontpage", responses = { @ApiResponse(responseCode = "200", content = {
+			@Content(mediaType = "application/json", schema = @Schema(implementation = Frontpage.class)) }) })
 	@SecurityRequirement(name = "Bearer Authentication")
 	@GET
 	@Path("/frontpage")
@@ -298,19 +313,22 @@ public class V2 {
 		}
 	}
 
-	@Operation(summary = "Get grade distribution by Area Id or Sector Id", responses = {@ApiResponse(responseCode = "200", content = {@Content(mediaType = "application/json", array = @ArraySchema(schema = @Schema(implementation = GradeDistribution.class)))})})
+	@Operation(summary = "Get grade distribution by Area Id or Sector Id", responses = {
+			@ApiResponse(responseCode = "200", content = {
+					@Content(mediaType = "application/json", array = @ArraySchema(schema = @Schema(implementation = GradeDistribution.class))) }) })
 	@SecurityRequirement(name = "Bearer Authentication")
 	@GET
 	@Path("/grade/distribution")
 	@Produces(MediaType.APPLICATION_JSON + "; charset=utf-8")
 	public Response getGradeDistribution(@Context HttpServletRequest request,
 			@Parameter(name = "Area id (can be 0 if idSector>0)", required = true) @QueryParam("idArea") int idArea,
-			@Parameter(name = "Sector id (can be 0 if idArea>0)", required = true) @QueryParam("idSector") int idSector
-			) throws ExecutionException, IOException {
+			@Parameter(name = "Sector id (can be 0 if idArea>0)", required = true) @QueryParam("idSector") int idSector)
+			throws ExecutionException, IOException {
 		try (DbConnection c = ConnectionPoolProvider.startTransaction()) {
 			final Setup setup = MetaHelper.getMeta().getSetup(request);
 			final int authUserId = getUserId(request);
-			Collection<GradeDistribution> res = c.getBuldreinfoRepo().getGradeDistribution(authUserId, setup, idArea, idSector);
+			Collection<GradeDistribution> res = c.getBuldreinfoRepo().getGradeDistribution(authUserId, setup, idArea,
+					idSector);
 			c.setSuccess();
 			return Response.ok().entity(res).build();
 		} catch (Exception e) {
@@ -318,7 +336,9 @@ public class V2 {
 		}
 	}
 
-	@Operation(summary = "Get graph (number of boulders/routes grouped by grade)", responses = {@ApiResponse(responseCode = "200", content = {@Content(mediaType = "application/json", array = @ArraySchema(schema = @Schema(implementation = GradeDistribution.class)))})})
+	@Operation(summary = "Get graph (number of boulders/routes grouped by grade)", responses = {
+			@ApiResponse(responseCode = "200", content = {
+					@Content(mediaType = "application/json", array = @ArraySchema(schema = @Schema(implementation = GradeDistribution.class))) }) })
 	@SecurityRequirement(name = "Bearer Authentication")
 	@GET
 	@Path("/graph")
@@ -336,29 +356,33 @@ public class V2 {
 	}
 
 	/**
-	 * crc32 is included to ensure correct version downloaded, and not old version from browser cache (e.g. if rotated image)
+	 * crc32 is included to ensure correct version downloaded, and not old version
+	 * from browser cache (e.g. if rotated image)
 	 */
-	@Operation(summary = "Get media by id", responses = {@ApiResponse(responseCode = "200", content = {@Content(mediaType = "image/*", array = @ArraySchema(schema = @Schema(implementation = Byte.class)))})})
+	@Operation(summary = "Get media by id", responses = { @ApiResponse(responseCode = "200", content = {
+			@Content(mediaType = "image/*", array = @ArraySchema(schema = @Schema(implementation = Byte.class))) }) })
 	@SecurityRequirement(name = "Bearer Authentication")
 	@GET
 	@Path("/images")
 	public Response getImages(@Context HttpServletRequest request,
 			@Parameter(name = "Media id", required = true) @QueryParam("id") int id,
 			@Parameter(name = "Checksum - not used in ws, but necessary to include on client when an image is changed (e.g. rotated) to avoid cached version", required = false) @QueryParam("crc32") int crc32,
-			@Parameter(name = "Image size - E.g. minDimention=100 can return an image with the size 100x133px", required = false) @QueryParam("minDimention") int minDimention) throws ExecutionException, IOException {
+			@Parameter(name = "Image size - E.g. minDimention=100 can return an image with the size 100x133px", required = false) @QueryParam("minDimention") int minDimention)
+			throws ExecutionException, IOException {
 		try (DbConnection c = ConnectionPoolProvider.startTransaction()) {
-			final Point dimention = minDimention == 0? null : c.getBuldreinfoRepo().getMediaDimention(id);
+			final Point dimention = minDimention == 0 ? null : c.getBuldreinfoRepo().getMediaDimention(id);
 			final String acceptHeader = request.getHeader("Accept");
 			final boolean webP = dimention == null && acceptHeader != null && acceptHeader.contains("image/webp");
-			final String mimeType = webP? "image/webp" : "image/jpeg";
+			final String mimeType = webP ? "image/webp" : "image/jpeg";
 			final java.nio.file.Path p = c.getBuldreinfoRepo().getImage(webP, id);
 			c.setSuccess();
 			CacheControl cc = new CacheControl();
 			cc.setMaxAge(2678400); // 31 days
 			cc.setNoTransform(false);
 			if (dimention != null) {
-				BufferedImage b = Preconditions.checkNotNull(ImageIO.read(p.toFile()), "Could not read " + p.toString());
-				Mode mode = dimention.getX() < dimention.getY()? Scalr.Mode.FIT_TO_WIDTH : Scalr.Mode.FIT_TO_HEIGHT;
+				BufferedImage b = Preconditions.checkNotNull(ImageIO.read(p.toFile()),
+						"Could not read " + p.toString());
+				Mode mode = dimention.getX() < dimention.getY() ? Scalr.Mode.FIT_TO_WIDTH : Scalr.Mode.FIT_TO_HEIGHT;
 				BufferedImage scaled = Scalr.resize(b, mode, minDimention);
 				b.flush();
 				try (ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
@@ -373,13 +397,15 @@ public class V2 {
 		}
 	}
 
-	@Operation(summary = "Get Media by id", responses = {@ApiResponse(responseCode = "200", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = Media.class))})})
+	@Operation(summary = "Get Media by id", responses = { @ApiResponse(responseCode = "200", content = {
+			@Content(mediaType = "application/json", schema = @Schema(implementation = Media.class)) }) })
 	@SecurityRequirement(name = "Bearer Authentication")
 	@GET
 	@Path("/media")
 	@Produces(MediaType.APPLICATION_JSON + "; charset=utf-8")
 	public Response getMedia(@Context HttpServletRequest request,
-			@Parameter(name = "Media id", required = true) @QueryParam("idMedia") int idMedia) throws ExecutionException, IOException {
+			@Parameter(name = "Media id", required = true) @QueryParam("idMedia") int idMedia)
+			throws ExecutionException, IOException {
 		try (DbConnection c = ConnectionPoolProvider.startTransaction()) {
 			final int authUserId = getUserId(request);
 			Media res = c.getBuldreinfoRepo().getMedia(authUserId, idMedia);
@@ -390,7 +416,8 @@ public class V2 {
 		}
 	}
 
-	@Operation(summary = "Get metadata", responses = {@ApiResponse(responseCode = "200", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = Meta.class))})})
+	@Operation(summary = "Get metadata", responses = { @ApiResponse(responseCode = "200", content = {
+			@Content(mediaType = "application/json", schema = @Schema(implementation = Meta.class)) }) })
 	@SecurityRequirement(name = "Bearer Authentication")
 	@GET
 	@Path("/meta")
@@ -407,7 +434,8 @@ public class V2 {
 		}
 	}
 
-	@Operation(summary = "Get permissions", responses = {@ApiResponse(responseCode = "200", content = {@Content(mediaType = "application/json", array = @ArraySchema(schema = @Schema(implementation = PermissionUser.class)))})})
+	@Operation(summary = "Get permissions", responses = { @ApiResponse(responseCode = "200", content = {
+			@Content(mediaType = "application/json", array = @ArraySchema(schema = @Schema(implementation = PermissionUser.class))) }) })
 	@SecurityRequirement(name = "Bearer Authentication")
 	@GET
 	@Path("/permissions")
@@ -424,15 +452,16 @@ public class V2 {
 		}
 	}
 
-	@Operation(summary = "Get problem by id", responses = {@ApiResponse(responseCode = "200", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = Problem.class))})})
+	@Operation(summary = "Get problem by id", responses = { @ApiResponse(responseCode = "200", content = {
+			@Content(mediaType = "application/json", schema = @Schema(implementation = Problem.class)) }) })
 	@SecurityRequirement(name = "Bearer Authentication")
 	@GET
 	@Path("/problem")
 	@Produces(MediaType.APPLICATION_JSON + "; charset=utf-8")
 	public Response getProblem(@Context HttpServletRequest request,
 			@Parameter(name = "Problem id", required = true) @QueryParam("id") int id,
-			@Parameter(name = "Include hidden media (example: if a sector has multiple topo-images, the topo-images without this route will be hidden)", required = false) @QueryParam("showHiddenMedia") boolean showHiddenMedia
-			) throws ExecutionException, IOException {
+			@Parameter(name = "Include hidden media (example: if a sector has multiple topo-images, the topo-images without this route will be hidden)", required = false) @QueryParam("showHiddenMedia") boolean showHiddenMedia)
+			throws ExecutionException, IOException {
 		try (DbConnection c = ConnectionPoolProvider.startTransaction()) {
 			final Setup setup = MetaHelper.getMeta().getSetup(request);
 			final int authUserId = getUserId(request);
@@ -445,14 +474,15 @@ public class V2 {
 		}
 	}
 
-	@Operation(summary = "Get problem PDF by id", responses = {@ApiResponse(responseCode = "200", content = {@Content(mediaType = "application/pdf", array = @ArraySchema(schema = @Schema(implementation = Byte.class)))})})
+	@Operation(summary = "Get problem PDF by id", responses = { @ApiResponse(responseCode = "200", content = {
+			@Content(mediaType = "application/pdf", array = @ArraySchema(schema = @Schema(implementation = Byte.class))) }) })
 	@SecurityRequirement(name = "Bearer Authentication")
 	@GET
 	@Path("/problem/pdf")
 	@Produces("application/pdf")
 	public Response getProblemPdf(@Context final HttpServletRequest request,
 			@Parameter(name = "Access token", required = false) @QueryParam("accessToken") String accessToken,
-			@Parameter(name = "Problem id", required = true) @QueryParam("id") int id) throws Throwable{
+			@Parameter(name = "Problem id", required = true) @QueryParam("id") int id) throws Throwable {
 		try (DbConnection c = ConnectionPoolProvider.startTransaction()) {
 			final Setup setup = MetaHelper.getMeta().getSetup(request);
 			final int authUserId = getUserId(request);
@@ -470,17 +500,18 @@ public class V2 {
 					} catch (Throwable e) {
 						e.printStackTrace();
 						throw GlobalFunctions.getWebApplicationExceptionInternalError(new Exception(e.getMessage()));
-					}	            	 
+					}
 				}
 			};
 			String fn = GlobalFunctions.getFilename(problem.getName(), "pdf");
-			return Response.ok(stream).header("Content-Disposition", "attachment; filename=\"" + fn + "\"" ).build();
+			return Response.ok(stream).header("Content-Disposition", "attachment; filename=\"" + fn + "\"").build();
 		} catch (Exception e) {
 			throw GlobalFunctions.getWebApplicationExceptionInternalError(e);
 		}
 	}
 
-	@Operation(summary = "Get problems", responses = {@ApiResponse(responseCode = "200", content = {@Content(mediaType = "application/json", array = @ArraySchema(schema = @Schema(implementation = ProblemArea.class)))})})
+	@Operation(summary = "Get problems", responses = { @ApiResponse(responseCode = "200", content = {
+			@Content(mediaType = "application/json", array = @ArraySchema(schema = @Schema(implementation = ProblemArea.class))) }) })
 	@SecurityRequirement(name = "Bearer Authentication")
 	@GET
 	@Path("/problems")
@@ -497,7 +528,8 @@ public class V2 {
 		}
 	}
 
-	@Operation(summary = "Get problems as Excel (xlsx)", responses = {@ApiResponse(responseCode = "200", content = {@Content(mediaType = MIME_TYPE_XLSX, array = @ArraySchema(schema = @Schema(implementation = Byte.class)))})})
+	@Operation(summary = "Get problems as Excel (xlsx)", responses = { @ApiResponse(responseCode = "200", content = {
+			@Content(mediaType = MIME_TYPE_XLSX, array = @ArraySchema(schema = @Schema(implementation = Byte.class))) }) })
 	@SecurityRequirement(name = "Bearer Authentication")
 	@GET
 	@Path("/problems/xlsx")
@@ -522,11 +554,11 @@ public class V2 {
 								writer.write("GRADE", p.getGrade());
 								String type = p.getT().getType();
 								if (p.getT().getSubType() != null) {
-									type += " (" + p.getT().getSubType() + ")";			
+									type += " (" + p.getT().getSubType() + ")";
 								}
 								writer.write("TYPE", type);
 								if (!setup.isBouldering()) {
-									writer.write("PITCHES", p.getNumPitches() > 0? p.getNumPitches() : 1);
+									writer.write("PITCHES", p.getNumPitches() > 0 ? p.getNumPitches() : 1);
 								}
 								writer.write("FA", p.getFa());
 								writer.write("STARS", p.getStars());
@@ -543,20 +575,21 @@ public class V2 {
 			c.setSuccess();
 			String fn = GlobalFunctions.getFilename("ProblemsList", "xlsx");
 			return Response.ok(bytes, MIME_TYPE_XLSX)
-					.header("Content-Disposition", "attachment; filename=\"" + fn + "\"" )
-					.build();
+					.header("Content-Disposition", "attachment; filename=\"" + fn + "\"").build();
 		} catch (Exception e) {
 			throw GlobalFunctions.getWebApplicationExceptionInternalError(e);
 		}
 	}
 
-	@Operation(summary = "Get profile by id", responses = {@ApiResponse(responseCode = "200", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = Profile.class))})})
+	@Operation(summary = "Get profile by id", responses = { @ApiResponse(responseCode = "200", content = {
+			@Content(mediaType = "application/json", schema = @Schema(implementation = Profile.class)) }) })
 	@SecurityRequirement(name = "Bearer Authentication")
 	@GET
 	@Path("/profile")
 	@Produces(MediaType.APPLICATION_JSON + "; charset=utf-8")
 	public Response getProfile(@Context HttpServletRequest request,
-			@Parameter(name = "User id (will return logged in user without this attribute)", required = true) @QueryParam("id") int reqUserId) throws ExecutionException, IOException {
+			@Parameter(name = "User id (will return logged in user without this attribute)", required = true) @QueryParam("id") int reqUserId)
+			throws ExecutionException, IOException {
 		try (DbConnection c = ConnectionPoolProvider.startTransaction()) {
 			final Setup setup = MetaHelper.getMeta().getSetup(request);
 			final int authUserId = getUserId(request);
@@ -568,14 +601,15 @@ public class V2 {
 		}
 	}
 
-	@Operation(summary = "Get profile media by id", responses = {@ApiResponse(responseCode = "200", content = {@Content(mediaType = "application/json", array = @ArraySchema(schema = @Schema(implementation = ProfileMedia.class)))})})
+	@Operation(summary = "Get profile media by id", responses = { @ApiResponse(responseCode = "200", content = {
+			@Content(mediaType = "application/json", array = @ArraySchema(schema = @Schema(implementation = ProfileMedia.class))) }) })
 	@GET
 	@Path("/profile/media")
 	@Produces(MediaType.APPLICATION_JSON + "; charset=utf-8")
 	public Response getProfilemedia(@Context HttpServletRequest request,
 			@Parameter(name = "User id", required = true) @QueryParam("id") int id,
-			@Parameter(name = "FALSE = tagged media, TRUE = captured media", required = false) @QueryParam("captured") boolean captured
-			) throws ExecutionException, IOException {
+			@Parameter(name = "FALSE = tagged media, TRUE = captured media", required = false) @QueryParam("captured") boolean captured)
+			throws ExecutionException, IOException {
 		try (DbConnection c = ConnectionPoolProvider.startTransaction()) {
 			final Setup setup = MetaHelper.getMeta().getSetup(request);
 			final int authUserId = getUserId(request);
@@ -592,12 +626,14 @@ public class V2 {
 		}
 	}
 
-	@Operation(summary = "Get profile statistics by id", responses = {@ApiResponse(responseCode = "200", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = ProfileStatistics.class))})})
+	@Operation(summary = "Get profile statistics by id", responses = { @ApiResponse(responseCode = "200", content = {
+			@Content(mediaType = "application/json", schema = @Schema(implementation = ProfileStatistics.class)) }) })
 	@GET
 	@Path("/profile/statistics")
 	@Produces(MediaType.APPLICATION_JSON + "; charset=utf-8")
 	public Response getProfileStatistics(@Context HttpServletRequest request,
-			@Parameter(name = "User id", required = true) @QueryParam("id") int id) throws ExecutionException, IOException {
+			@Parameter(name = "User id", required = true) @QueryParam("id") int id)
+			throws ExecutionException, IOException {
 		try (DbConnection c = ConnectionPoolProvider.startTransaction()) {
 			final Setup setup = MetaHelper.getMeta().getSetup(request);
 			final int authUserId = getUserId(request);
@@ -609,13 +645,15 @@ public class V2 {
 		}
 	}
 
-	@Operation(summary = "Get profile todo", responses = {@ApiResponse(responseCode = "200", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = ProfileTodo.class))})})
+	@Operation(summary = "Get profile todo", responses = { @ApiResponse(responseCode = "200", content = {
+			@Content(mediaType = "application/json", schema = @Schema(implementation = ProfileTodo.class)) }) })
 	@SecurityRequirement(name = "Bearer Authentication")
 	@GET
 	@Path("/profile/todo")
 	@Produces(MediaType.APPLICATION_JSON + "; charset=utf-8")
 	public Response getProfileTodo(@Context HttpServletRequest request,
-			@Parameter(name = "User id", required = true) @QueryParam("id") int id) throws ExecutionException, IOException {
+			@Parameter(name = "User id", required = true) @QueryParam("id") int id)
+			throws ExecutionException, IOException {
 		try (DbConnection c = ConnectionPoolProvider.startTransaction()) {
 			final Setup setup = MetaHelper.getMeta().getSetup(request);
 			final int authUserId = getUserId(request);
@@ -627,30 +665,30 @@ public class V2 {
 		}
 	}
 
-	@Operation(summary = "Get robots.txt", responses = {@ApiResponse(responseCode = "200", content = {@Content(mediaType = "text/html", schema = @Schema(implementation = String.class))})})
+	@Operation(summary = "Get robots.txt", responses = { @ApiResponse(responseCode = "200", content = {
+			@Content(mediaType = "text/html", schema = @Schema(implementation = String.class)) }) })
 	@GET
 	@Path("/robots.txt")
 	@Produces(MediaType.TEXT_PLAIN + "; charset=utf-8")
 	public Response getRobotsTxt(@Context HttpServletRequest request) {
 		final Setup setup = MetaHelper.getMeta().getSetup(request);
 		if (setup.isSetRobotsDenyAll()) {
-			return Response.ok().entity("User-agent: *\r\nDisallow: /").build(); 
+			return Response.ok().entity("User-agent: *\r\nDisallow: /").build();
 		}
-		List<String> lines = Lists.newArrayList(
-				"User-agent: *",
-				"Disallow: */pdf", // Disallow all pdf-calls
+		List<String> lines = Lists.newArrayList("User-agent: *", "Disallow: */pdf", // Disallow all pdf-calls
 				"Sitemap: " + setup.getUrl("/sitemap.txt"));
-		return Response.ok().entity(Joiner.on("\r\n").join(lines)).build(); 
+		return Response.ok().entity(Joiner.on("\r\n").join(lines)).build();
 	}
 
-	@Operation(summary = "Get sector by id", responses = {@ApiResponse(responseCode = "200", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = Sector.class))})})
+	@Operation(summary = "Get sector by id", responses = { @ApiResponse(responseCode = "200", content = {
+			@Content(mediaType = "application/json", schema = @Schema(implementation = Sector.class)) }) })
 	@SecurityRequirement(name = "Bearer Authentication")
 	@GET
 	@Path("/sectors")
 	@Produces(MediaType.APPLICATION_JSON + "; charset=utf-8")
 	public Response getSectors(@Context HttpServletRequest request,
-			@Parameter(name = "Sector id", required = true) @QueryParam("id") int id
-			) throws ExecutionException, IOException {
+			@Parameter(name = "Sector id", required = true) @QueryParam("id") int id)
+			throws ExecutionException, IOException {
 		try (DbConnection c = ConnectionPoolProvider.startTransaction()) {
 			final Setup setup = MetaHelper.getMeta().getSetup(request);
 			final int authUserId = getUserId(request);
@@ -664,20 +702,22 @@ public class V2 {
 		}
 	}
 
-	@Operation(summary = "Get sector PDF by id", responses = {@ApiResponse(responseCode = "200", content = {@Content(mediaType = "application/pdf", array = @ArraySchema(schema = @Schema(implementation = Byte.class)))})})
+	@Operation(summary = "Get sector PDF by id", responses = { @ApiResponse(responseCode = "200", content = {
+			@Content(mediaType = "application/pdf", array = @ArraySchema(schema = @Schema(implementation = Byte.class))) }) })
 	@SecurityRequirement(name = "Bearer Authentication")
 	@GET
 	@Path("/sectors/pdf")
 	@Produces("application/pdf")
 	public Response getSectorsPdf(@Context final HttpServletRequest request,
 			@Parameter(name = "Access token", required = false) @QueryParam("accessToken") String accessToken,
-			@Parameter(name = "Sector id", required = true) @QueryParam("id") int id) throws Throwable{
+			@Parameter(name = "Sector id", required = true) @QueryParam("id") int id) throws Throwable {
 		try (DbConnection c = ConnectionPoolProvider.startTransaction()) {
 			final Setup setup = MetaHelper.getMeta().getSetup(request);
 			final int authUserId = getUserId(request);
 			final Meta meta = new Meta(c, setup, authUserId);
 			final Sector sector = c.getBuldreinfoRepo().getSector(authUserId, false, setup, id);
-			final Collection<GradeDistribution> gradeDistribution = c.getBuldreinfoRepo().getGradeDistribution(authUserId, setup, 0, id);
+			final Collection<GradeDistribution> gradeDistribution = c.getBuldreinfoRepo()
+					.getGradeDistribution(authUserId, setup, 0, id);
 			final Area area = c.getBuldreinfoRepo().getArea(setup, authUserId, sector.getAreaId());
 			c.setSuccess();
 			StreamingOutput stream = new StreamingOutput() {
@@ -690,17 +730,18 @@ public class V2 {
 					} catch (Throwable e) {
 						e.printStackTrace();
 						throw GlobalFunctions.getWebApplicationExceptionInternalError(new Exception(e.getMessage()));
-					}	            	 
+					}
 				}
 			};
 			String fn = GlobalFunctions.getFilename(sector.getName(), "pdf");
-			return Response.ok(stream).header("Content-Disposition", "attachment; filename=\"" + fn + "\"" ).build();
+			return Response.ok(stream).header("Content-Disposition", "attachment; filename=\"" + fn + "\"").build();
 		} catch (Exception e) {
 			throw GlobalFunctions.getWebApplicationExceptionInternalError(e);
 		}
 	}
 
-	@Operation(summary = "Get sitemap.txt", responses = {@ApiResponse(responseCode = "200", content = {@Content(mediaType = "text/html", schema = @Schema(implementation = String.class))})})
+	@Operation(summary = "Get sitemap.txt", responses = { @ApiResponse(responseCode = "200", content = {
+			@Content(mediaType = "text/html", schema = @Schema(implementation = String.class)) }) })
 	@GET
 	@Path("/sitemap.txt")
 	@Produces(MediaType.TEXT_PLAIN + "; charset=utf-8")
@@ -715,14 +756,15 @@ public class V2 {
 		}
 	}
 
-	@Operation(summary = "Get ticks (public ascents)", responses = {@ApiResponse(responseCode = "200", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = Ticks.class))})})
+	@Operation(summary = "Get ticks (public ascents)", responses = { @ApiResponse(responseCode = "200", content = {
+			@Content(mediaType = "application/json", schema = @Schema(implementation = Ticks.class)) }) })
 	@SecurityRequirement(name = "Bearer Authentication")
 	@GET
 	@Path("/ticks")
 	@Produces(MediaType.APPLICATION_JSON + "; charset=utf-8")
 	public Response getTicks(@Context HttpServletRequest request,
-			@Parameter(name = "Page (ticks ordered descending, 0 returns fist page)", required = false) @QueryParam("page") int page
-			) throws ExecutionException, IOException {
+			@Parameter(name = "Page (ticks ordered descending, 0 returns fist page)", required = false) @QueryParam("page") int page)
+			throws ExecutionException, IOException {
 		try (DbConnection c = ConnectionPoolProvider.startTransaction()) {
 			final Setup setup = MetaHelper.getMeta().getSetup(request);
 			final int authUserId = getUserId(request);
@@ -734,15 +776,16 @@ public class V2 {
 		}
 	}
 
-	@Operation(summary = "Get todo on Area/Sector", responses = {@ApiResponse(responseCode = "200", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = Todo.class))})})
+	@Operation(summary = "Get todo on Area/Sector", responses = { @ApiResponse(responseCode = "200", content = {
+			@Content(mediaType = "application/json", schema = @Schema(implementation = Todo.class)) }) })
 	@SecurityRequirement(name = "Bearer Authentication")
 	@GET
 	@Path("/todo")
 	@Produces(MediaType.APPLICATION_JSON + "; charset=utf-8")
 	public Response getTodo(@Context HttpServletRequest request,
 			@Parameter(name = "Area id (can be 0 if idSector>0)", required = true) @QueryParam("idArea") int idArea,
-			@Parameter(name = "Sector id (can be 0 if idArea>0)", required = true) @QueryParam("idSector") int idSector
-			) throws ExecutionException, IOException {
+			@Parameter(name = "Sector id (can be 0 if idArea>0)", required = true) @QueryParam("idSector") int idSector)
+			throws ExecutionException, IOException {
 		try (DbConnection c = ConnectionPoolProvider.startTransaction()) {
 			final Setup setup = MetaHelper.getMeta().getSetup(request);
 			final int authUserId = getUserId(request);
@@ -754,15 +797,16 @@ public class V2 {
 		}
 	}
 
-	@Operation(summary = "Get top on Area/Sector", responses = {@ApiResponse(responseCode = "200", content = {@Content(mediaType = "application/json", array = @ArraySchema(schema = @Schema(implementation = Top.class)))})})
+	@Operation(summary = "Get top on Area/Sector", responses = { @ApiResponse(responseCode = "200", content = {
+			@Content(mediaType = "application/json", array = @ArraySchema(schema = @Schema(implementation = Top.class))) }) })
 	@SecurityRequirement(name = "Bearer Authentication")
 	@GET
 	@Path("/top")
 	@Produces(MediaType.APPLICATION_JSON + "; charset=utf-8")
-	public Response getTop(@Context HttpServletRequest request, 
+	public Response getTop(@Context HttpServletRequest request,
 			@Parameter(name = "Area id (can be 0 if idSector>0)", required = true) @QueryParam("idArea") int idArea,
-			@Parameter(name = "Sector id (can be 0 if idArea>0)", required = true) @QueryParam("idSector") int idSector
-			) throws ExecutionException, IOException {
+			@Parameter(name = "Sector id (can be 0 if idArea>0)", required = true) @QueryParam("idSector") int idSector)
+			throws ExecutionException, IOException {
 		try (DbConnection c = ConnectionPoolProvider.startTransaction()) {
 			final Setup setup = MetaHelper.getMeta().getSetup(request);
 			final int authUserId = getUserId(request);
@@ -774,7 +818,8 @@ public class V2 {
 		}
 	}
 
-	@Operation(summary = "Get trash", responses = {@ApiResponse(responseCode = "200", content = {@Content(mediaType = "application/json", array = @ArraySchema(schema = @Schema(implementation = Trash.class)))})})
+	@Operation(summary = "Get trash", responses = { @ApiResponse(responseCode = "200", content = {
+			@Content(mediaType = "application/json", array = @ArraySchema(schema = @Schema(implementation = Trash.class))) }) })
 	@SecurityRequirement(name = "Bearer Authentication")
 	@GET
 	@Path("/trash")
@@ -791,14 +836,15 @@ public class V2 {
 		}
 	}
 
-	@Operation(summary = "Search for user", responses = {@ApiResponse(responseCode = "200", content = {@Content(mediaType = "application/json", array = @ArraySchema(schema = @Schema(implementation = UserSearch.class)))})})
+	@Operation(summary = "Search for user", responses = { @ApiResponse(responseCode = "200", content = {
+			@Content(mediaType = "application/json", array = @ArraySchema(schema = @Schema(implementation = UserSearch.class))) }) })
 	@SecurityRequirement(name = "Bearer Authentication")
 	@GET
 	@Path("/users/search")
 	@Produces(MediaType.APPLICATION_JSON + "; charset=utf-8")
 	public Response getUsersSearch(@Context HttpServletRequest request,
-			@Parameter(name = "Search keyword", required = true) @QueryParam("value") String value
-			) throws ExecutionException, IOException {
+			@Parameter(name = "Search keyword", required = true) @QueryParam("value") String value)
+			throws ExecutionException, IOException {
 		try (DbConnection c = ConnectionPoolProvider.startTransaction()) {
 			final int authUserId = getUserId(request);
 			List<UserSearch> res = c.getBuldreinfoRepo().getUserSearch(authUserId, value);
@@ -809,7 +855,9 @@ public class V2 {
 		}
 	}
 
-	@Operation(summary = "Get ticks (public ascents) on logged in user as Excel file (xlsx)", responses = {@ApiResponse(responseCode = "200", content = {@Content(mediaType = MIME_TYPE_XLSX, array = @ArraySchema(schema = @Schema(implementation = Byte.class)))})})
+	@Operation(summary = "Get ticks (public ascents) on logged in user as Excel file (xlsx)", responses = {
+			@ApiResponse(responseCode = "200", content = {
+					@Content(mediaType = MIME_TYPE_XLSX, array = @ArraySchema(schema = @Schema(implementation = Byte.class))) }) })
 	@SecurityRequirement(name = "Bearer Authentication")
 	@GET
 	@Path("/users/ticks")
@@ -817,20 +865,21 @@ public class V2 {
 	public Response getUsersTicks(@Context HttpServletRequest request) throws ExecutionException, IOException {
 		try (DbConnection c = ConnectionPoolProvider.startTransaction()) {
 			final int authUserId = getUserId(request);
-			Preconditions.checkArgument(authUserId>0, "User not logged in");
+			Preconditions.checkArgument(authUserId > 0, "User not logged in");
 			byte[] bytes = c.getBuldreinfoRepo().getUserTicks(authUserId);
 			c.setSuccess();
 
 			String fn = GlobalFunctions.getFilename("Ticks", "xlsx");
 			return Response.ok(bytes, MIME_TYPE_XLSX)
-					.header("Content-Disposition", "attachment; filename=\"" + fn + "\"" )
-					.build();
+					.header("Content-Disposition", "attachment; filename=\"" + fn + "\"").build();
 		} catch (Exception e) {
 			throw GlobalFunctions.getWebApplicationExceptionInternalError(e);
 		}
 	}
 
-	@Operation(summary = "Get Frontpage without JavaScript (for embedding on e.g. Facebook)", responses = {@ApiResponse(responseCode = "200", content = {@Content(mediaType = "text/html", schema = @Schema(implementation = String.class))})})
+	@Operation(summary = "Get Frontpage without JavaScript (for embedding on e.g. Facebook)", responses = {
+			@ApiResponse(responseCode = "200", content = {
+					@Content(mediaType = "text/html", schema = @Schema(implementation = String.class)) }) })
 	@GET
 	@Path("/without-js")
 	@Produces(MediaType.TEXT_HTML + "; charset=utf-8")
@@ -840,20 +889,13 @@ public class V2 {
 			final int authUserId = 0;
 			Frontpage f = c.getBuldreinfoRepo().getFrontpage(authUserId, setup);
 			String description = String.format("%s - %d %s, %d public ascents, %d images, %d ascents on video",
-					setup.getDescription(),
-					f.getNumProblems(),
-					(setup.isBouldering()? "boulders" : "routes"),
-					f.getNumTicks(),
-					f.getNumImages(),
-					f.getNumMovies());
+					setup.getDescription(), f.getNumProblems(), (setup.isBouldering() ? "boulders" : "routes"),
+					f.getNumTicks(), f.getNumImages(), f.getNumMovies());
 			FrontpageRandomMedia randomMedia = f.getRandomMedia();
-			String html = getHtml(setup,
-					setup.getUrl(),
-					setup.getTitle(),
-					description,
-					(randomMedia == null? 0 : randomMedia.getIdMedia()),
-					(randomMedia == null? 0 : randomMedia.getWidth()),
-					(randomMedia == null? 0 : randomMedia.getHeight()));
+			String html = getHtml(setup, setup.getUrl(), setup.getTitle(), description,
+					(randomMedia == null ? 0 : randomMedia.getIdMedia()),
+					(randomMedia == null ? 0 : randomMedia.getWidth()),
+					(randomMedia == null ? 0 : randomMedia.getHeight()));
 			c.setSuccess();
 			return Response.ok().entity(html).build();
 		} catch (Exception e) {
@@ -861,34 +903,31 @@ public class V2 {
 		}
 	}
 
-	@Operation(summary = "Get area by id without JavaScript (for embedding on e.g. Facebook)", responses = {@ApiResponse(responseCode = "200", content = {@Content(mediaType = "text/html", schema = @Schema(implementation = String.class))})})
+	@Operation(summary = "Get area by id without JavaScript (for embedding on e.g. Facebook)", responses = {
+			@ApiResponse(responseCode = "200", content = {
+					@Content(mediaType = "text/html", schema = @Schema(implementation = String.class)) }) })
 	@GET
 	@Path("/without-js/area/{id}")
 	@Produces(MediaType.TEXT_HTML + "; charset=utf-8")
-	public Response getWithoutJsArea(@Context HttpServletRequest request, @Parameter(name = "Area id", required = true) @PathParam("id") int id) throws ExecutionException, IOException {
+	public Response getWithoutJsArea(@Context HttpServletRequest request,
+			@Parameter(name = "Area id", required = true) @PathParam("id") int id)
+			throws ExecutionException, IOException {
 		try (DbConnection c = ConnectionPoolProvider.startTransaction()) {
 			final Setup setup = MetaHelper.getMeta().getSetup(request);
 			final int authUserId = 0;
 			Area a = c.getBuldreinfoRepo().getArea(setup, authUserId, id);
 			String description = null;
-			String info = a.getTypeNumTicked() == null || a.getTypeNumTicked().isEmpty()? null : a.getTypeNumTicked()
-					.stream()
-					.map(tnt -> tnt.getNum() + " " + tnt.getType().toLowerCase())
-					.collect(Collectors.joining(", "));
+			String info = a.getTypeNumTicked() == null || a.getTypeNumTicked().isEmpty() ? null
+					: a.getTypeNumTicked().stream().map(tnt -> tnt.getNum() + " " + tnt.getType().toLowerCase())
+							.collect(Collectors.joining(", "));
 			if (setup.isBouldering()) {
 				description = String.format("Bouldering in %s (%s)", a.getName(), info);
-			}
-			else {
+			} else {
 				description = String.format("Climbing in %s (%s)", a.getName(), info);
 			}
-			Media m = a.getMedia() != null && !a.getMedia().isEmpty()? a.getMedia().get(0) : null;
-			String html = getHtml(setup,
-					setup.getUrl("/area/" + a.getId()),
-					a.getName(),
-					description,
-					(m == null? 0 : m.getId()),
-					(m == null? 0 : m.getWidth()),
-					(m == null? 0 : m.getHeight()));
+			Media m = a.getMedia() != null && !a.getMedia().isEmpty() ? a.getMedia().get(0) : null;
+			String html = getHtml(setup, setup.getUrl("/area/" + a.getId()), a.getName(), description,
+					(m == null ? 0 : m.getId()), (m == null ? 0 : m.getWidth()), (m == null ? 0 : m.getHeight()));
 			c.setSuccess();
 			return Response.ok().entity(html).build();
 		} catch (Exception e) {
@@ -896,38 +935,39 @@ public class V2 {
 		}
 	}
 
-	@Operation(summary = "Get problem by id without JavaScript (for embedding on e.g. Facebook)", responses = {@ApiResponse(responseCode = "200", content = {@Content(mediaType = "text/html", schema = @Schema(implementation = String.class))})})
+	@Operation(summary = "Get problem by id without JavaScript (for embedding on e.g. Facebook)", responses = {
+			@ApiResponse(responseCode = "200", content = {
+					@Content(mediaType = "text/html", schema = @Schema(implementation = String.class)) }) })
 	@GET
 	@Path("/without-js/problem/{id}")
 	@Produces(MediaType.TEXT_HTML + "; charset=utf-8")
-	public Response getWithoutJsProblem(@Context HttpServletRequest request, @Parameter(name = "Problem id", required = true) @PathParam("id") int id) throws ExecutionException, IOException {
+	public Response getWithoutJsProblem(@Context HttpServletRequest request,
+			@Parameter(name = "Problem id", required = true) @PathParam("id") int id)
+			throws ExecutionException, IOException {
 		try (DbConnection c = ConnectionPoolProvider.startTransaction()) {
 			final Setup setup = MetaHelper.getMeta().getSetup(request);
 			final int authUserId = 0;
 			Problem p = c.getBuldreinfoRepo().getProblem(authUserId, setup, id, false);
-			String title = String.format("%s [%s] (%s / %s)", p.getName(), p.getGrade(), p.getAreaName(), p.getSectorName());
+			String title = String.format("%s [%s] (%s / %s)", p.getName(), p.getGrade(), p.getAreaName(),
+					p.getSectorName());
 			String description = p.getComment();
 			if (p.getFa() != null && !p.getFa().isEmpty()) {
-				String fa = Joiner.on(", ").join(p.getFa().stream().map(x -> x.getName().trim()).collect(Collectors.toList()));
-				description = (!Strings.isNullOrEmpty(description)? description + " | " : "") + "First ascent by " + fa + (!Strings.isNullOrEmpty(p.getFaDateHr())? " (" + p.getFaDate() + ")" : "");
+				String fa = Joiner.on(", ")
+						.join(p.getFa().stream().map(x -> x.getName().trim()).collect(Collectors.toList()));
+				description = (!Strings.isNullOrEmpty(description) ? description + " | " : "") + "First ascent by " + fa
+						+ (!Strings.isNullOrEmpty(p.getFaDateHr()) ? " (" + p.getFaDate() + ")" : "");
 			}
 			Media m = null;
 			if (p.getMedia() != null && !p.getMedia().isEmpty()) {
 				Optional<Media> optM = p.getMedia().stream().filter(x -> !x.isInherited()).findFirst();
 				if (optM.isPresent()) {
 					m = optM.get();
-				}
-				else {
+				} else {
 					m = p.getMedia().get(0);
 				}
 			}
-			String html = getHtml(setup,
-					setup.getUrl("/problem/" + p.getId()),
-					title,
-					description,
-					(m == null? 0 : m.getId()),
-					(m == null? 0 : m.getWidth()),
-					(m == null? 0 : m.getHeight()));
+			String html = getHtml(setup, setup.getUrl("/problem/" + p.getId()), title, description,
+					(m == null ? 0 : m.getId()), (m == null ? 0 : m.getWidth()), (m == null ? 0 : m.getHeight()));
 			c.setSuccess();
 			return Response.ok().entity(html).build();
 		} catch (Exception e) {
@@ -935,11 +975,15 @@ public class V2 {
 		}
 	}
 
-	@Operation(summary = "Get sector by id without JavaScript (for embedding on e.g. Facebook)", responses = {@ApiResponse(responseCode = "200", content = {@Content(mediaType = "text/html", schema = @Schema(implementation = String.class))})})
+	@Operation(summary = "Get sector by id without JavaScript (for embedding on e.g. Facebook)", responses = {
+			@ApiResponse(responseCode = "200", content = {
+					@Content(mediaType = "text/html", schema = @Schema(implementation = String.class)) }) })
 	@GET
 	@Path("/without-js/sector/{id}")
 	@Produces(MediaType.TEXT_HTML + "; charset=utf-8")
-	public Response getWithoutJsSector(@Context HttpServletRequest request, @Parameter(name = "Sector id", required = true) @PathParam("id") int id) throws ExecutionException, IOException {
+	public Response getWithoutJsSector(@Context HttpServletRequest request,
+			@Parameter(name = "Sector id", required = true) @PathParam("id") int id)
+			throws ExecutionException, IOException {
 		try (DbConnection c = ConnectionPoolProvider.startTransaction()) {
 			final Setup setup = MetaHelper.getMeta().getSetup(request);
 			final int authUserId = 0;
@@ -947,20 +991,13 @@ public class V2 {
 			Sector s = c.getBuldreinfoRepo().getSector(authUserId, orderByGrade, setup, id);
 			String title = String.format("%s (%s)", s.getName(), s.getAreaName());
 			String description = String.format("%s in %s / %s (%d %s)%s",
-					(setup.isBouldering()? "Bouldering" : "Climbing"),
-					s.getAreaName(),
-					s.getName(),
-					(s.getProblems() != null? s.getProblems().size() : 0),
-					(setup.isBouldering()? "boulders" : "routes"),
-					(!Strings.isNullOrEmpty(s.getComment())? " | " + s.getComment() : ""));
-			Media m = s.getMedia() != null && !s.getMedia().isEmpty()? s.getMedia().get(0) : null;
-			String html = getHtml(setup,
-					setup.getUrl("/sector/" + s.getId()),
-					title,
-					description,
-					(m == null? 0 : m.getId()),
-					(m == null? 0 : m.getWidth()),
-					(m == null? 0 : m.getHeight()));
+					(setup.isBouldering() ? "Bouldering" : "Climbing"), s.getAreaName(), s.getName(),
+					(s.getProblems() != null ? s.getProblems().size() : 0),
+					(setup.isBouldering() ? "boulders" : "routes"),
+					(!Strings.isNullOrEmpty(s.getComment()) ? " | " + s.getComment() : ""));
+			Media m = s.getMedia() != null && !s.getMedia().isEmpty() ? s.getMedia().get(0) : null;
+			String html = getHtml(setup, setup.getUrl("/sector/" + s.getId()), title, description,
+					(m == null ? 0 : m.getId()), (m == null ? 0 : m.getWidth()), (m == null ? 0 : m.getHeight()));
 			c.setSuccess();
 			return Response.ok().entity(html).build();
 		} catch (Exception e) {
@@ -968,13 +1005,16 @@ public class V2 {
 		}
 	}
 
-	@Operation(summary = "Update area (area must be provided as json on field \"json\" in multiPart)", responses = {@ApiResponse(responseCode = "200", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = Redirect.class))})})
+	@Operation(summary = "Update area (area must be provided as json on field \"json\" in multiPart)", responses = {
+			@ApiResponse(responseCode = "200", content = {
+					@Content(mediaType = "application/json", schema = @Schema(implementation = Redirect.class)) }) })
 	@SecurityRequirement(name = "Bearer Authentication")
 	@POST
 	@Path("/areas")
 	@Consumes(MediaType.MULTIPART_FORM_DATA + "; charset=utf-8")
 	@Produces(MediaType.APPLICATION_JSON + "; charset=utf-8")
-	public Response postAreas(@Context HttpServletRequest request, FormDataMultiPart multiPart) throws ExecutionException, IOException {
+	public Response postAreas(@Context HttpServletRequest request, FormDataMultiPart multiPart)
+			throws ExecutionException, IOException {
 		Area a = new Gson().fromJson(multiPart.getField("json").getValue(), Area.class);
 		try (DbConnection c = ConnectionPoolProvider.startTransaction()) {
 			final Setup setup = MetaHelper.getMeta().getSetup(request);
@@ -994,7 +1034,8 @@ public class V2 {
 	@Path("/comments")
 	@Consumes(MediaType.MULTIPART_FORM_DATA + "; charset=utf-8")
 	@Produces(MediaType.APPLICATION_JSON + "; charset=utf-8")
-	public Response postComments(@Context HttpServletRequest request, FormDataMultiPart multiPart) throws ExecutionException, IOException {
+	public Response postComments(@Context HttpServletRequest request, FormDataMultiPart multiPart)
+			throws ExecutionException, IOException {
 		Comment co = new Gson().fromJson(multiPart.getField("json").getValue(), Comment.class);
 		try (DbConnection c = ConnectionPoolProvider.startTransaction()) {
 			final int authUserId = getUserId(request);
@@ -1027,7 +1068,8 @@ public class V2 {
 	@SecurityRequirement(name = "Bearer Authentication")
 	@POST
 	@Path("/permissions")
-	public Response postPermissions(@Context HttpServletRequest request, PermissionUser u) throws ExecutionException, IOException {
+	public Response postPermissions(@Context HttpServletRequest request, PermissionUser u)
+			throws ExecutionException, IOException {
 		try (DbConnection c = ConnectionPoolProvider.startTransaction()) {
 			final Setup setup = MetaHelper.getMeta().getSetup(request);
 			final int authUserId = getUserId(request);
@@ -1039,18 +1081,22 @@ public class V2 {
 		}
 	}
 
-	@Operation(summary = "Update problem (problem must be provided as json on field \"json\" in multiPart)", responses = {@ApiResponse(responseCode = "200", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = Redirect.class))})})
+	@Operation(summary = "Update problem (problem must be provided as json on field \"json\" in multiPart)", responses = {
+			@ApiResponse(responseCode = "200", content = {
+					@Content(mediaType = "application/json", schema = @Schema(implementation = Redirect.class)) }) })
 	@SecurityRequirement(name = "Bearer Authentication")
 	@POST
 	@Path("/problems")
 	@Consumes(MediaType.MULTIPART_FORM_DATA + "; charset=utf-8")
 	@Produces(MediaType.APPLICATION_JSON + "; charset=utf-8")
-	public Response postProblems(@Context HttpServletRequest request, FormDataMultiPart multiPart) throws ExecutionException, IOException {
+	public Response postProblems(@Context HttpServletRequest request, FormDataMultiPart multiPart)
+			throws ExecutionException, IOException {
 		Problem p = new Gson().fromJson(multiPart.getField("json").getValue(), Problem.class);
 		try (DbConnection c = ConnectionPoolProvider.startTransaction()) {
 			final Setup setup = MetaHelper.getMeta().getSetup(request);
 			final int authUserId = getUserId(request);
-			// Preconditions.checkArgument(p.getAreaId() > 1); <--ZERO! Problems don't contain areaId from react-http-post
+			// Preconditions.checkArgument(p.getAreaId() > 1); <--ZERO! Problems don't
+			// contain areaId from react-http-post
 			Preconditions.checkArgument(p.getSectorId() > 1);
 			Preconditions.checkNotNull(Strings.emptyToNull(p.getName()));
 			Redirect res = c.getBuldreinfoRepo().setProblem(authUserId, setup, p, multiPart);
@@ -1061,7 +1107,9 @@ public class V2 {
 		}
 	}
 
-	@Operation(summary = "Add media on problem (problem must be provided as json on field \"json\" in multiPart)", responses = {@ApiResponse(responseCode = "200", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = Problem.class))})})
+	@Operation(summary = "Add media on problem (problem must be provided as json on field \"json\" in multiPart)", responses = {
+			@ApiResponse(responseCode = "200", content = {
+					@Content(mediaType = "application/json", schema = @Schema(implementation = Problem.class)) }) })
 	@SecurityRequirement(name = "Bearer Authentication")
 	@POST
 	@Path("/problems/media")
@@ -1091,13 +1139,12 @@ public class V2 {
 	@Path("/problems/svg")
 	public Response postProblemsSvg(@Context HttpServletRequest request,
 			@Parameter(name = "Problem id", required = true) @QueryParam("problemId") int problemId,
-			@Parameter(name = "Media id", required = true) @QueryParam("mediaId") int mediaId,
-			Svg svg
-			) throws ExecutionException, IOException {
+			@Parameter(name = "Media id", required = true) @QueryParam("mediaId") int mediaId, Svg svg)
+			throws ExecutionException, IOException {
 		try (DbConnection c = ConnectionPoolProvider.startTransaction()) {
 			final int authUserId = getUserId(request);
-			Preconditions.checkArgument(problemId>0, "Invalid problemId=" + problemId);
-			Preconditions.checkArgument(mediaId>0, "Invalid mediaId=" + mediaId);
+			Preconditions.checkArgument(problemId > 0, "Invalid problemId=" + problemId);
+			Preconditions.checkArgument(mediaId > 0, "Invalid mediaId=" + mediaId);
 			Preconditions.checkNotNull(svg, "Invalid svg=" + svg);
 			c.getBuldreinfoRepo().upsertSvg(authUserId, problemId, mediaId, svg);
 			c.setSuccess();
@@ -1107,12 +1154,15 @@ public class V2 {
 		}
 	}
 
-	@Operation(summary = "Search for area/sector/problem/user", responses = {@ApiResponse(responseCode = "200", content = {@Content(mediaType = "application/json", array = @ArraySchema(schema = @Schema(implementation = Search.class)))})})
+	@Operation(summary = "Search for area/sector/problem/user", responses = {
+			@ApiResponse(responseCode = "200", content = {
+					@Content(mediaType = "application/json", array = @ArraySchema(schema = @Schema(implementation = Search.class))) }) })
 	@SecurityRequirement(name = "Bearer Authentication")
 	@POST
 	@Path("/search")
 	@Produces(MediaType.APPLICATION_JSON + "; charset=utf-8")
-	public Response postSearch(@Context HttpServletRequest request, SearchRequest sr) throws ExecutionException, IOException {
+	public Response postSearch(@Context HttpServletRequest request, SearchRequest sr)
+			throws ExecutionException, IOException {
 		try (DbConnection c = ConnectionPoolProvider.startTransaction()) {
 			String search = Strings.emptyToNull(Strings.nullToEmpty(sr.getValue()).trim());
 			Preconditions.checkNotNull(search, "Invalid search: " + search);
@@ -1126,13 +1176,16 @@ public class V2 {
 		}
 	}
 
-	@Operation(summary = "Update sector (sector smust be provided as json on field \"json\" in multiPart)", responses = {@ApiResponse(responseCode = "200", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = Redirect.class))})})
+	@Operation(summary = "Update sector (sector smust be provided as json on field \"json\" in multiPart)", responses = {
+			@ApiResponse(responseCode = "200", content = {
+					@Content(mediaType = "application/json", schema = @Schema(implementation = Redirect.class)) }) })
 	@SecurityRequirement(name = "Bearer Authentication")
 	@POST
 	@Path("/sectors")
 	@Consumes(MediaType.MULTIPART_FORM_DATA + "; charset=utf-8")
 	@Produces(MediaType.APPLICATION_JSON + "; charset=utf-8")
-	public Response postSectors(@Context HttpServletRequest request, FormDataMultiPart multiPart) throws ExecutionException, IOException {
+	public Response postSectors(@Context HttpServletRequest request, FormDataMultiPart multiPart)
+			throws ExecutionException, IOException {
 		Sector s = new Gson().fromJson(multiPart.getField("json").getValue(), Sector.class);
 		try (DbConnection c = ConnectionPoolProvider.startTransaction()) {
 			final Setup setup = MetaHelper.getMeta().getSetup(request);
@@ -1172,8 +1225,8 @@ public class V2 {
 	@Path("/todo")
 	@Consumes(MediaType.APPLICATION_JSON + "; charset=utf-8")
 	public Response postTodo(@Context HttpServletRequest request,
-			@Parameter(name = "Problem id", required = true) @QueryParam("idProblem") int idProblem
-			) throws ExecutionException, IOException {
+			@Parameter(name = "Problem id", required = true) @QueryParam("idProblem") int idProblem)
+			throws ExecutionException, IOException {
 		try (DbConnection c = ConnectionPoolProvider.startTransaction()) {
 			final int authUserId = getUserId(request);
 			c.getBuldreinfoRepo().toggleTodo(authUserId, idProblem);
@@ -1190,8 +1243,8 @@ public class V2 {
 	@Path("/user/regions")
 	public Response postUserRegions(@Context HttpServletRequest request,
 			@Parameter(name = "Region id", required = true) @QueryParam("regionId") int regionId,
-			@Parameter(name = "Delete (TRUE=hide, FALSE=show)", required = true) @QueryParam("delete") boolean delete
-			) throws ExecutionException, IOException {
+			@Parameter(name = "Delete (TRUE=hide, FALSE=show)", required = true) @QueryParam("delete") boolean delete)
+			throws ExecutionException, IOException {
 		try (DbConnection c = ConnectionPoolProvider.startTransaction()) {
 			final int authUserId = getUserId(request);
 			Preconditions.checkArgument(authUserId != -1);
@@ -1211,13 +1264,11 @@ public class V2 {
 			@Parameter(name = "Move right", required = true) @QueryParam("id") int id,
 			@Parameter(name = "Move left", required = true) @QueryParam("left") boolean left,
 			@Parameter(name = "To sector id (will move media to sector if toSectorId>0 and toProblemId=0)", required = true) @QueryParam("toIdSector") int toIdSector,
-			@Parameter(name = "To problem id (will move media to problem if toProblemId>0 and toSectorId=0)", required = true) @QueryParam("toIdProblem") int toIdProblem
-			) throws ExecutionException, IOException {
-		Preconditions.checkArgument((left && toIdSector == 0 && toIdProblem == 0) ||
-				(!left && toIdSector == 0 && toIdProblem == 0) ||
-				(!left && toIdSector > 0 && toIdProblem == 0) ||
-				(!left && toIdSector == 0 && toIdProblem > 0),
-				"Invalid arguments");
+			@Parameter(name = "To problem id (will move media to problem if toProblemId>0 and toSectorId=0)", required = true) @QueryParam("toIdProblem") int toIdProblem)
+			throws ExecutionException, IOException {
+		Preconditions.checkArgument((left && toIdSector == 0 && toIdProblem == 0)
+				|| (!left && toIdSector == 0 && toIdProblem == 0) || (!left && toIdSector > 0 && toIdProblem == 0)
+				|| (!left && toIdSector == 0 && toIdProblem > 0), "Invalid arguments");
 		try (DbConnection c = ConnectionPoolProvider.startTransaction()) {
 			final int authUserId = getUserId(request);
 			Preconditions.checkArgument(id > 0);
@@ -1233,7 +1284,8 @@ public class V2 {
 	@SecurityRequirement(name = "Bearer Authentication")
 	@PUT
 	@Path("/media/info")
-	public Response putMediaInfo(@Context HttpServletRequest request, MediaInfo m) throws ExecutionException, IOException {
+	public Response putMediaInfo(@Context HttpServletRequest request, MediaInfo m)
+			throws ExecutionException, IOException {
 		try (DbConnection c = ConnectionPoolProvider.startTransaction()) {
 			final int authUserId = getUserId(request);
 			Preconditions.checkArgument(authUserId > 0);
@@ -1251,8 +1303,7 @@ public class V2 {
 	@Path("/media/jpeg/rotate")
 	public Response putMediaJpegRotate(@Context HttpServletRequest request,
 			@Parameter(name = "Media id", required = true) @QueryParam("idMedia") int idMedia,
-			@Parameter(name = "Degrees (90/180/270)", required = true) @QueryParam("degrees") int degrees
-			) {
+			@Parameter(name = "Degrees (90/180/270)", required = true) @QueryParam("degrees") int degrees) {
 		try (DbConnection c = ConnectionPoolProvider.startTransaction()) {
 			final Setup setup = MetaHelper.getMeta().getSetup(request);
 			final int authUserId = getUserId(request);
@@ -1272,14 +1323,11 @@ public class V2 {
 			@Parameter(name = "Area id", required = true) @QueryParam("idArea") int idArea,
 			@Parameter(name = "Sector id", required = true) @QueryParam("idSector") int idSector,
 			@Parameter(name = "Problem id", required = true) @QueryParam("idProblem") int idProblem,
-			@Parameter(name = "Media id", required = true) @QueryParam("idMedia") int idMedia
-			) throws ExecutionException, IOException {
-		Preconditions.checkArgument(
-				(idArea > 0 && idSector == 0 && idProblem == 0) ||
-				(idArea == 0 && idSector > 0 && idProblem == 0) ||
-				(idArea == 0 && idSector == 0 && idProblem > 0) ||
-				(idArea == 0 && idSector == 0 && idProblem == 0),
-				"Invalid arguments");
+			@Parameter(name = "Media id", required = true) @QueryParam("idMedia") int idMedia)
+			throws ExecutionException, IOException {
+		Preconditions.checkArgument((idArea > 0 && idSector == 0 && idProblem == 0)
+				|| (idArea == 0 && idSector > 0 && idProblem == 0) || (idArea == 0 && idSector == 0 && idProblem > 0)
+				|| (idArea == 0 && idSector == 0 && idProblem == 0), "Invalid arguments");
 		try (DbConnection c = ConnectionPoolProvider.startTransaction()) {
 			final Setup setup = MetaHelper.getMeta().getSetup(request);
 			final int authUserId = getUserId(request);
@@ -1291,25 +1339,22 @@ public class V2 {
 		}
 	}
 
-	private String getHtml(Setup setup, String url, String title, String description, int mediaId, int mediaWidth, int mediaHeight) {
+	private String getHtml(Setup setup, String url, String title, String description, int mediaId, int mediaWidth,
+			int mediaHeight) {
 		String ogImage = "";
 		if (mediaId > 0) {
-			String image = setup.getUrl("/buldreinfo_media/jpg/" + String.valueOf(mediaId/100*100) + "/" + mediaId + ".jpg");
-			ogImage = "<meta property=\"og:image\" content=\"" + image + "\" />" + 
-					"<meta property=\"og:image:width\" content=\"" + mediaWidth + "\" />" + 
-					"<meta property=\"og:image:height\" content=\"" + mediaHeight + "\" />";
+			String image = setup
+					.getUrl("/buldreinfo_media/jpg/" + String.valueOf(mediaId / 100 * 100) + "/" + mediaId + ".jpg");
+			ogImage = "<meta property=\"og:image\" content=\"" + image + "\" />"
+					+ "<meta property=\"og:image:width\" content=\"" + mediaWidth + "\" />"
+					+ "<meta property=\"og:image:height\" content=\"" + mediaHeight + "\" />";
 		}
-		String html = "<html><head>" +
-				"<meta charset=\"UTF-8\">" +
-				"<title>" + title + "</title>" + 
-				"<meta name=\"description\" content=\"" + description + "\" />" + 
-				"<meta property=\"og:type\" content=\"website\" />" + 
-				"<meta property=\"og:description\" content=\"" + description + "\" />" + 
-				"<meta property=\"og:url\" content=\"" + url + "\" />" + 
-				"<meta property=\"og:title\" content=\"" + title + "\" />" + 
-				"<meta property=\"fb:app_id\" content=\"275320366630912\" />" +
-				ogImage +
-				"</head></html>";
+		String html = "<html><head>" + "<meta charset=\"UTF-8\">" + "<title>" + title + "</title>"
+				+ "<meta name=\"description\" content=\"" + description + "\" />"
+				+ "<meta property=\"og:type\" content=\"website\" />" + "<meta property=\"og:description\" content=\""
+				+ description + "\" />" + "<meta property=\"og:url\" content=\"" + url + "\" />"
+				+ "<meta property=\"og:title\" content=\"" + title + "\" />"
+				+ "<meta property=\"fb:app_id\" content=\"275320366630912\" />" + ogImage + "</head></html>";
 		return html;
 	}
 

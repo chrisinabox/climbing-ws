@@ -44,6 +44,7 @@ import java.util.stream.Collectors;
 
 import javax.imageio.ImageIO;
 
+import org.apache.commons.lang3.SystemUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.glassfish.jersey.media.multipart.FormDataMultiPart;
@@ -3753,9 +3754,12 @@ public class BuldreinfoRepository {
 						idMedia = rst.getInt(1);
 					}
 				}
+			} catch (Exception e) {
+				throw GlobalFunctions.getWebApplicationExceptionInternalError(e);
 			}
 		}
 		Preconditions.checkArgument(idMedia > 0);
+		logger.debug("addNewMedia(idMedia={})", idMedia);
 		if (idProblem > 0) {
 			try (PreparedStatement ps = c.getConnection().prepareStatement("INSERT INTO media_problem (media_id, problem_id, pitch, trivia, milliseconds) VALUES (?, ?, ?, ?, ?)")) {
 				ps.setInt(1, idMedia);
@@ -3764,6 +3768,8 @@ public class BuldreinfoRepository {
 				ps.setBoolean(4, trivia);
 				ps.setLong(5, m.getEmbedMilliseconds());
 				ps.execute();
+			} catch (Exception e) {
+				throw GlobalFunctions.getWebApplicationExceptionInternalError(e);
 			}
 		} else if (idSector > 0) {
 			try (PreparedStatement ps = c.getConnection().prepareStatement("INSERT INTO media_sector (media_id, sector_id, trivia) VALUES (?, ?, ?)")) {
@@ -3771,6 +3777,8 @@ public class BuldreinfoRepository {
 				ps.setInt(2, idSector);
 				ps.setBoolean(3, trivia);
 				ps.execute();
+			} catch (Exception e) {
+				throw GlobalFunctions.getWebApplicationExceptionInternalError(e);
 			}
 		} else if (idArea > 0) {
 			try (PreparedStatement ps = c.getConnection().prepareStatement("INSERT INTO media_area (media_id, area_id, trivia) VALUES (?, ?, ?)")) {
@@ -3778,6 +3786,8 @@ public class BuldreinfoRepository {
 				ps.setInt(2, idArea);
 				ps.setBoolean(3, trivia);
 				ps.execute();
+			} catch (Exception e) {
+				throw GlobalFunctions.getWebApplicationExceptionInternalError(e);
 			}
 		} else if (idGuestbook > 0) {
 			try (PreparedStatement ps = c.getConnection().prepareStatement("INSERT INTO media_guestbook (media_id, guestbook_id) VALUES (?, ?)")) {
@@ -3911,7 +3921,7 @@ public class BuldreinfoRepository {
 		}
 		Preconditions.checkArgument(Files.exists(original), original.toString() + " does not exist");
 		Preconditions.checkArgument(!Files.exists(webp), webp.toString() + " does already exist");
-		Preconditions.checkArgument(!Files.exists(jpg), jpg.toString() + " does already exist");
+		Preconditions.checkArgument(!Files.exists(jpg), jpg.toString() + " does already exist");	
 		// Scaled JPG
 		BufferedImage bOriginal = ImageIO.read(original.toFile());
 		final int width = bOriginal.getWidth();
@@ -3926,8 +3936,17 @@ public class BuldreinfoRepository {
 		GlobalFunctions.setPermission(jpg);
 		logger.debug("createScaledImages(id={}) - scaled jpg saved", id);
 		// Scaled WebP
-		String[] cmd = new String[] { "/bin/bash", "-c", "cwebp \"" + jpg.toString() + "\" -o \"" + webp.toString() + "\"" };
-		Process process = Runtime.getRuntime().exec(cmd);
+			
+		String[] cmd;
+		
+		//If using a windows environment
+		if (SystemUtils.IS_OS_WINDOWS) {
+			cmd = new String[] { GlobalFunctions.getPathwithRoot("bin\\cwebp.exe").toString(), jpg.toString().replaceAll("\\s+", ""), "-o", webp.toString().replaceAll("\\s+", "")};
+		} else {
+			cmd = new String[] { "/bin/bash", "-c", "cwebp \"" + jpg.toString() + "\" -o \"" + webp.toString() + "\"" };
+		}
+		
+		Process process = Runtime.getRuntime().exec(cmd);	
 		process.waitFor();
 		Preconditions.checkArgument(Files.exists(webp), "WebP does not exist. Command=" + Lists.newArrayList(cmd));
 		GlobalFunctions.setPermission(webp);

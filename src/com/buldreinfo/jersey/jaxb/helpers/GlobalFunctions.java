@@ -11,6 +11,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.HashSet;
 import java.util.Set;
 
+import org.apache.commons.lang3.SystemUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -80,25 +81,38 @@ public class GlobalFunctions {
 	}
 
 	public static void setPermission(Path p) {
-		try {
-			Set<PosixFilePermission> perms = new HashSet<>();
-			perms.add(PosixFilePermission.OWNER_READ);
-			perms.add(PosixFilePermission.OWNER_WRITE);
-			perms.add(PosixFilePermission.OTHERS_READ);
-			perms.add(PosixFilePermission.OTHERS_WRITE);
-			perms.add(PosixFilePermission.GROUP_READ);
-			perms.add(PosixFilePermission.GROUP_WRITE);
-			Files.setPosixFilePermissions(p, perms);
-		} catch (IOException e) {
-			logger.warn(e.getMessage(), e);
+		if (!SystemUtils.IS_OS_WINDOWS)
+		{
+			try {
+				Set<PosixFilePermission> perms = new HashSet<>();
+				perms.add(PosixFilePermission.OWNER_READ);
+				perms.add(PosixFilePermission.OWNER_WRITE);
+				perms.add(PosixFilePermission.OTHERS_READ);
+				perms.add(PosixFilePermission.OTHERS_WRITE);
+				perms.add(PosixFilePermission.GROUP_READ);
+				perms.add(PosixFilePermission.GROUP_WRITE);
+				Files.setPosixFilePermissions(p, perms);
+			} catch (IOException e) {
+				logger.warn(e.getMessage(), e);
+			}
 		}
 	}
 
 	private static Path getPathRoot() throws IOException {
-		Path res = Paths.get(MEDIA_ROOT_PRODUCTION);
+		Path res;
+		if (SystemUtils.IS_OS_WINDOWS)
+			res = Path.of(System.getProperty("catalina.base"), MEDIA_ROOT_PRODUCTION);
+		else
+			res = Paths.get(MEDIA_ROOT_PRODUCTION);
+		
 		if (!Files.exists(res)) {
 			throw new RuntimeException(res.toString() + " does not exists");
 		}
+		return res;
+	}
+	
+	public static Path getPathwithRoot(String s) {
+		Path res = Path.of(System.getProperty("catalina.base"), s);
 		return res;
 	}
 
