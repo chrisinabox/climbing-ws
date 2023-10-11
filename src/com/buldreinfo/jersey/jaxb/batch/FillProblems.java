@@ -160,7 +160,7 @@ public class FillProblems {
 		logger.debug("insert {}", d);
 		List<FaUser> fa = getFas(c, d.getFa());
 		Type t = c.getBuldreinfoRepo().getTypes(REGION_ID).stream().filter(x -> x.getId() == d.getTypeId()).findFirst().get();
-		Problem p = new Problem(null, idArea, false, false, null, null, null, false, -1, -1, idSector, false, false, null, null, null, null, null, null, null, null, null, null, null, -1, null, false, false, false, d.getNr(), d.getProblem(), null, d.getComment(), null, d.getGrade().replaceAll(" ", ""), d.getFaDate(), null, fa, null, null, -1, 0, false, null, t, false, 0, null, null, null, null, null, null);
+		Problem p = new Problem(null, idArea, false, false, null, null, null, false, -1, -1, idSector, false, false, null, null, null, null, null, null, null, null, null, null, null, -1, null, false, false, false, false, d.getNr(), d.getProblem(), null, d.getComment(), null, d.getGrade().replaceAll(" ", ""), d.getFaDate(), null, fa, null, null, -1, 0, false, null, t, false, 0, null, null, null, null, null, null);
 		if (d.getNumPitches() > 1) {
 			for (int nr = 1; nr <= d.getNumPitches(); nr++) {
 				p.addSection(-1, nr, null, "n/a", new ArrayList<>());

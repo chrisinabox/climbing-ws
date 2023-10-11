@@ -25,7 +25,7 @@ public class SectorProblem {
 	private final Type t;
 	private final boolean danger;
 	
-	public SectorProblem(int id, String broken, boolean lockedAdmin, boolean lockedSuperadmin, boolean moderated, int nr, String name, String rock, String comment, int gradeNumber, String grade, String fa,
+	public SectorProblem(int id, String broken, boolean lockedAdmin, boolean lockedSuperadmin, boolean isModerated, int nr, String name, String rock, String comment, int gradeNumber, String grade, String fa,
 			int numPitches,
 			boolean hasImages, boolean hasMovies, boolean hasTopo, Coordinates coordinates, int numTicks, double stars, boolean ticked, boolean todo, Type t,
 			boolean danger) {
@@ -33,7 +33,7 @@ public class SectorProblem {
 		this.broken = broken;
 		this.lockedAdmin = lockedAdmin;
 		this.lockedSuperadmin = lockedSuperadmin;
-		this.isModerated = moderated;
+		this.isModerated = isModerated;
 		this.nr = nr;
 		this.name = name;
 		this.rock = rock;
@@ -133,7 +133,7 @@ public class SectorProblem {
 	public boolean isLockedSuperadmin() {
 		return lockedSuperadmin;
 	}
-	
+
 	public boolean isModerated() {
 		return isModerated;
 	}
