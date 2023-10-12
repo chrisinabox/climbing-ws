@@ -101,7 +101,7 @@ public class GlobalFunctions {
 	private static Path getPathRoot() throws IOException {
 		Path res;
 		if (SystemUtils.IS_OS_WINDOWS)
-			res = Path.of(System.getProperty("catalina.base"), MEDIA_ROOT_PRODUCTION);
+			res = Paths.get(System.getProperty("catalina.base"), MEDIA_ROOT_PRODUCTION);
 		else
 			res = Paths.get(MEDIA_ROOT_PRODUCTION);
 		
@@ -112,7 +112,7 @@ public class GlobalFunctions {
 	}
 	
 	public static Path getPathwithRoot(String s) {
-		Path res = Path.of(System.getProperty("catalina.base"), s);
+		Path res = Paths.get(System.getProperty("catalina.base"), s);
 		return res;
 	}
 

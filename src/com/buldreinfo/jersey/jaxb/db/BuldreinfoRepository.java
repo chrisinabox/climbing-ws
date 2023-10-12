@@ -1458,8 +1458,8 @@ public class BuldreinfoRepository {
 		logger.debug("getProblem(authUserId={}, reqRegionId={}, reqId={}) - duration={} - p={}", authUserId, s.getIdRegion(), reqId, stopwatch, p);
 		return p;
 	}
-
-	public List<ProblemArea> getProblemsList(int authUserId, Setup setup) throws IOException, SQLException {
+	
+	public List<ProblemArea> getProblemsList(int authUserId, Setup setup, boolean onlyUnmoderated) throws IOException, SQLException {
 		Stopwatch stopwatch = Stopwatch.createStarted();
 		Map<Integer, ProblemArea> areaLookup = new HashMap<>();
 		Map<Integer, ProblemArea.ProblemAreaSector> sectorLookup = new HashMap<>();
@@ -1469,6 +1469,7 @@ public class BuldreinfoRepository {
 				+ " MAX(CASE WHEN (t.user_id=? OR u.id=?) THEN 1 END) ticked, ty.id type_id, ty.type, ty.subtype, COUNT(DISTINCT ps.id) num_pitches"
 				+ " FROM ((((((((((((area a INNER JOIN region r ON a.region_id=r.id) INNER JOIN region_type rt ON r.id=rt.region_id AND rt.type_id IN (SELECT type_id FROM region_type WHERE region_id=?)) INNER JOIN sector s ON a.id=s.area_id) INNER JOIN problem p ON (s.id=p.sector_id AND rt.type_id=p.type_id)) INNER JOIN type ty ON p.type_id=ty.id) LEFT JOIN coordinates ac ON a.coordinates_id=ac.id) LEFT JOIN coordinates sc ON s.parking_coordinates_id=sc.id) LEFT JOIN coordinates c ON p.coordinates_id=c.id) LEFT JOIN user_region ur ON a.region_id=ur.region_id AND ur.user_id=?) LEFT JOIN fa f ON p.id=f.problem_id) LEFT JOIN user u ON f.user_id=u.id) LEFT JOIN tick t ON p.id=t.problem_id) LEFT JOIN problem_section ps ON p.id=ps.problem_id"
 				+ " WHERE (a.region_id=? OR ur.user_id IS NOT NULL)"
+				+ (onlyUnmoderated ? " AND p.moderated IS NULL" : "")
 				+ " AND is_readable(ur.admin_read, ur.superadmin_read, a.locked_admin, a.locked_superadmin, a.trash)=1"
 				+ " AND is_readable(ur.admin_read, ur.superadmin_read, s.locked_admin, s.locked_superadmin, s.trash)=1"
 				+ " AND is_readable(ur.admin_read, ur.superadmin_read, p.locked_admin, p.locked_superadmin, p.trash)=1"

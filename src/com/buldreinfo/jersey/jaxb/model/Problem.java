@@ -207,7 +207,7 @@ public class Problem {
 	private final boolean trash;
 	private final boolean lockedAdmin;
 	private final boolean lockedSuperadmin;
-	private final boolean isModerated;
+	private final boolean moderated;
 	private final int nr;
 	private final String name;
 	private final String rock;
@@ -240,7 +240,7 @@ public class Problem {
 	
 	public Problem(String redirectUrl, int areaId, boolean areaLockedAdmin, boolean areaLockedSuperadmin, String areaName, String areaAccessInfo, String areaAccessClosed, boolean areaNoDogsAllowed, int areaSunFromHour, int areaSunToHour,
 			int sectorId, boolean sectorLockedAdmin, boolean sectorLockedSuperadmin, String sectorName, String sectorAccessInfo, String sectorAccessClosed,
-			Coordinates sectorParking, List<Coordinates> sectorOutline, CompassDirection sectorWallDirectionCalculated, CompassDirection sectorWallDirectionManual, Approach sectorApproach, SectorProblem neighbourPrev, SectorProblem neighbourNext, String canonical, int id, String broken, boolean trash, boolean lockedAdmin, boolean lockedSuperadmin, boolean isModerated, int nr, String name, String rock, String comment, String grade, String originalGrade, String faDate, String faDateHr, List<FaUser> fa, Coordinates coordinates, List<Media> media, int numTics, double stars, boolean ticked, List<NewMedia> newMedia, Type t, boolean todo, long hits,
+			Coordinates sectorParking, List<Coordinates> sectorOutline, CompassDirection sectorWallDirectionCalculated, CompassDirection sectorWallDirectionManual, Approach sectorApproach, SectorProblem neighbourPrev, SectorProblem neighbourNext, String canonical, int id, String broken, boolean trash, boolean lockedAdmin, boolean lockedSuperadmin, boolean moderated, int nr, String name, String rock, String comment, String grade, String originalGrade, String faDate, String faDateHr, List<FaUser> fa, Coordinates coordinates, List<Media> media, int numTics, double stars, boolean ticked, List<NewMedia> newMedia, Type t, boolean todo, long hits,
 			String trivia, List<Media> triviaMedia, String startingAltitude, String aspect, String routeLength, String descent) {
 		this.redirectUrl = redirectUrl;
 		this.areaId = areaId;
@@ -271,7 +271,7 @@ public class Problem {
 		this.trash = trash;
 		this.lockedAdmin = lockedAdmin;
 		this.lockedSuperadmin = lockedSuperadmin;
-		this.isModerated = isModerated;
+		this.moderated = moderated;
 		this.nr = nr;
 		this.name = name;
 		this.rock = rock;
@@ -543,7 +543,7 @@ public class Problem {
 	}
 	
 	public boolean isModerated() {
-		return isModerated;
+		return moderated;
 	}
 
 	public boolean isSectorLockedAdmin() {

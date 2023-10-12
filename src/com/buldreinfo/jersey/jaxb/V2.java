@@ -520,7 +520,25 @@ public class V2 {
 		try (DbConnection c = ConnectionPoolProvider.startTransaction()) {
 			final Setup setup = MetaHelper.getMeta().getSetup(request);
 			final int authUserId = getUserId(request);
-			List<ProblemArea> res = c.getBuldreinfoRepo().getProblemsList(authUserId, setup);
+			List<ProblemArea> res = c.getBuldreinfoRepo().getProblemsList(authUserId, setup, false);
+			c.setSuccess();
+			return Response.ok().entity(res).build();
+		} catch (Exception e) {
+			throw GlobalFunctions.getWebApplicationExceptionInternalError(e);
+		}
+	}
+	
+	@Operation(summary = "Get problems requiring moderation", responses = { @ApiResponse(responseCode = "200", content = {
+			@Content(mediaType = "application/json", array = @ArraySchema(schema = @Schema(implementation = ProblemArea.class))) }) })
+	@SecurityRequirement(name = "Bearer Authentication")
+	@GET
+	@Path("/problems/unmoderated")
+	@Produces(MediaType.APPLICATION_JSON + "; charset=utf-8")
+	public Response getUnmoderatedProblems(@Context HttpServletRequest request) throws ExecutionException, IOException {
+		try (DbConnection c = ConnectionPoolProvider.startTransaction()) {
+			final Setup setup = MetaHelper.getMeta().getSetup(request);
+			final int authUserId = getUserId(request);
+			List<ProblemArea> res = c.getBuldreinfoRepo().getProblemsList(authUserId, setup, true);
 			c.setSuccess();
 			return Response.ok().entity(res).build();
 		} catch (Exception e) {
@@ -538,7 +556,7 @@ public class V2 {
 		try (DbConnection c = ConnectionPoolProvider.startTransaction()) {
 			final Setup setup = MetaHelper.getMeta().getSetup(request);
 			final int authUserId = getUserId(request);
-			List<ProblemArea> res = c.getBuldreinfoRepo().getProblemsList(authUserId, setup);
+			List<ProblemArea> res = c.getBuldreinfoRepo().getProblemsList(authUserId, setup, false);
 			byte[] bytes;
 			try (ExcelReport report = new ExcelReport()) {
 				try (SheetWriter writer = report.addSheet("TOC")) {
